@@ -34,6 +34,7 @@
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Gameplay/Character/Status/StatusEffectDecoratorFactory.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Gameplay/Skills/DashSkill.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Gameplay/Skills/HealthPotionSkill.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Gameplay/Skills/Interfaces/ISkill.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -119,6 +120,9 @@
       <workItem from="1741023289399" duration="32000" />
       <workItem from="1741023381514" duration="33000" />
       <workItem from="1741023553125" duration="352000" />
+      <workItem from="1743949253384" duration="20000" />
+      <workItem from="1743949343699" duration="23000" />
+      <workItem from="1743949448884" duration="208000" />
     </task>
     <servers />
   </component>
