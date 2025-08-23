@@ -1,13 +1,15 @@
+using System;
+using Configs;
+
 public abstract class StatusEffect
 {
-    public abstract float Power();
-    public abstract float Attack();
-    public abstract float ReducingCooldown();
-    public abstract float CriticalChance();
-    public abstract float CriticalDamage();
-    public abstract float Health();
-    public abstract float HealthRegen();
-    public abstract float Armor();
-    public abstract float Harmony();
-    public abstract float MoveSpeed();
+    public string Id { get; private set; }
+
+    public StatusEffect(string id)
+    {
+        Id = id;
+    }
+    
+    public abstract float GetStatValue(StatId statId);
+    public abstract StatusEffect CloneWith(StatusEffect statusEffect);
 }

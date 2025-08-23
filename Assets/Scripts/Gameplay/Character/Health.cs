@@ -1,7 +1,7 @@
 using System;
 using _Project.Scripts.Gameplay.Character.Status;
 using Configs;
-using Sirenix.OdinInspector;
+//using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace _Project.Scripts.Gameplay.Character
@@ -26,7 +26,7 @@ namespace _Project.Scripts.Gameplay.Character
             CurrentHealth = MaxHealth;
         }
         
-        [Button]
+        //[Button]
         public void TakeDamage(float value)
         {
             CurrentHealth -= value;

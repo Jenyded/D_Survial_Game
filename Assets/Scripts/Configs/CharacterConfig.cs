@@ -15,6 +15,7 @@ namespace Configs
         public List<Stat> Stats;
 
         [Header("Skills"), Space(5f)] 
+        public List<AttackConfig> AttackSequence;
         public List<SkillConfig> Skills;
         public SkillConfig JoystickSkill;
         public SkillConfig SwipeSkill;
@@ -26,6 +27,11 @@ namespace Configs
 
     public enum CharacterId
     {
-        Savage = 0,
+        Druid = 0,
+    }
+
+    public enum EnemyId
+    {
+        Test = 0
     }
 }

@@ -1,34 +1,45 @@
 using System.Collections.Generic;
 using Configs;
+using _Project.Scripts.Gameplay;
 using Core.Character;
 
-namespace _Project.Scripts.Gameplay.Character
+namespace _Project.Scripts.Gameplay.Character.Status
 {
-    public class CharacterStatus
+    public class CharacterStatus : BaseStatus
     {
-        public StatusEffect Current => _status;
-        
-        private StatusEffectDecoratorFactory _statusDecoratorFactory;
-        private StatusEffect _status;
-        private readonly CharacterConfig _config;
-        private readonly List<StatusEffect> _equipmentEffects;
-        private readonly List<StatusEffect> _buffEffects;
-    
+        private string Id = "MainStatus";
+        private CharacterConfig _config;
+
         public CharacterStatus(CharacterConfig config)
         {
             _config = config;
-            _equipmentEffects = new();
-            _buffEffects = new();
         }
 
-        public void RefreshStatus()
+        public override void AddStatusEffect<T>(StatusEffect effect)
         {
-            _status = new CharacterDefaultStatus(_config);
-        
-            //Add new layers which will modify default values
-            _equipmentEffects.ForEach(x => _status = new EquipmentEffect(_status));
-            _buffEffects.ForEach(x => _status = new BuffEffect(_status));
+            if (StatusEffects[typeof(T)].Exists(x => x.Id == effect.Id))
+                return;
+            
+            StatusEffects[typeof(T)].Add(effect);
+            RefreshStatus();
         }
+
+        public override void RemoveStatusEffect<T>(StatusEffect effect)
+        {
+            StatusEffects[typeof(T)].Remove(effect);
+            RefreshStatus();
+        }
+
+        public override void RefreshStatus()
+        {
+            CurrentStatus = new CharacterDefaultStatus(_config, Id);
+
+            //Add new layers which will modify default values
+            foreach (var (type, effects) in StatusEffects)
+            {
+                effects.ForEach(x => CurrentStatus = x.CloneWith(CurrentStatus));
+            }
+        }
+
     }
-    
 }

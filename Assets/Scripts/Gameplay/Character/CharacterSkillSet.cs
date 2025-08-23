@@ -4,9 +4,9 @@ namespace _Project.Scripts.Gameplay.Character
 {
     public class CharacterSkillSet : MonoBehaviour
     {
-        public void Construct(CharacterStatus status)
+        /*public void Construct(CharacterStatus status)
         {
-            
-        }
+
+        }*/
     }
 }

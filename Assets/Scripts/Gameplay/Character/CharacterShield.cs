@@ -3,7 +3,7 @@ using _Project.Scripts.Gameplay;
 using _Project.Scripts.Gameplay.Character;
 using _Project.Scripts.Gameplay.Character.Status;
 using Configs;
-using Sirenix.OdinInspector;
+//using Sirenix.OdinInspector;
 using UnityEngine;
 
 public class CharacterShield : MonoBehaviour
@@ -26,7 +26,7 @@ public class CharacterShield : MonoBehaviour
         CurrentShield = MaxShield;
     }
         
-    [Button]
+   // [Button]
     public void TakeDamage(float value)
     {
         CurrentShield -= value;

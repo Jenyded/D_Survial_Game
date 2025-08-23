@@ -9,7 +9,7 @@ namespace _Project.Scripts.Gameplay.Character
         public event Action Died;
         
         [SerializeField] private CharacterMovement _movement;
-        [SerializeField] private CharacterHealth _health;
+        [SerializeField] private Health _health;
         [SerializeField] private CharacterAnimator _animator;
         private bool _isDead;
         
