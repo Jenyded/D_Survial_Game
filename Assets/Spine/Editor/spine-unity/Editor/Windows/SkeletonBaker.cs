@@ -1,16 +1,16 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated April 5, 2025. Replaces all prior versions.
+ * Last updated July 28, 2023. Replaces all prior versions.
  *
- * Copyright (c) 2013-2025, Esoteric Software LLC
+ * Copyright (c) 2013-2023, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software or
+ * otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
@@ -23,8 +23,8 @@
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
  * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
+ * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
 #if UNITY_2018_3 || UNITY_2019 || UNITY_2018_3_OR_NEWER
@@ -69,10 +69,6 @@ namespace Spine.Unity.Editor {
 	public static class SkeletonBaker {
 
 		const string SpineEventStringId = "SpineEvent";
-		public static UnityEngine.Object SpineEventObjectPlaceholder {
-			get { return SpineEditorUtilities.Icons.skeletonDataAssetIcon; }
-		}
-
 		const float EventTimeEqualityEpsilon = 0.01f;
 
 		#region SkeletonMecanim's Mecanim Clips
@@ -134,8 +130,6 @@ namespace Spine.Unity.Editor {
 				}
 			}
 
-			SkeletonData skeletonData = skeletonDataAsset.GetSkeletonData(true);
-			float fps = skeletonData != null ? skeletonData.Fps : 0.0f;
 			foreach (Animation animations in data.Animations) {
 				string animationName = animations.Name; // Review for unsafe names. Requires runtime implementation too.
 				spineAnimationTable.Add(animationName, animations);
@@ -150,7 +144,6 @@ namespace Spine.Unity.Editor {
 				}
 
 				AnimationClip clip = unityAnimationClipTable[animationName];
-				clip.frameRate = fps;
 				clip.SetCurve("", typeof(GameObject), "dummy", AnimationCurve.Linear(0, 0, animations.Duration, 0));
 				AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(clip);
 				settings.stopTime = animations.Duration;
@@ -336,13 +329,13 @@ namespace Spine.Unity.Editor {
 
 					boneTransform.parent = parentTransform;
 					boneTransform.localPosition = new Vector3(boneData.X, boneData.Y, 0);
-					Inherit inherit = boneData.Inherit;
-					if (inherit.InheritsRotation())
+					TransformMode tm = boneData.TransformMode;
+					if (tm.InheritsRotation())
 						boneTransform.localRotation = Quaternion.Euler(0, 0, boneData.Rotation);
 					else
 						boneTransform.rotation = Quaternion.Euler(0, 0, boneData.Rotation);
 
-					if (inherit.InheritsScale())
+					if (tm.InheritsScale())
 						boneTransform.localScale = new Vector3(boneData.ScaleX, boneData.ScaleY, 1);
 				}
 
@@ -621,7 +614,7 @@ namespace Spine.Unity.Editor {
 				throw new System.ArgumentException("Mesh is not weighted.", "attachment");
 
 			Skeleton skeleton = new Skeleton(skeletonData);
-			skeleton.UpdateWorldTransform(Skeleton.Physics.Update);
+			skeleton.UpdateWorldTransform();
 
 			float[] floatVerts = new float[attachment.WorldVerticesLength];
 			attachment.ComputeWorldVertices(skeleton.Slots.Items[slotIndex], floatVerts);
@@ -781,7 +774,7 @@ namespace Spine.Unity.Editor {
 			}
 
 			foreach (Bone b in skeleton.Bones) {
-				if (!b.Data.Inherit.InheritsRotation()) {
+				if (!b.Data.TransformMode.InheritsRotation()) {
 					int index = b.Data.Index;
 					if (ignoreRotateTimelineIndexes.Contains(index) == false) {
 						ignoreRotateTimelineIndexes.Add(index);
@@ -839,10 +832,10 @@ namespace Spine.Unity.Editor {
 
 		static void BakeBoneConstraints (Bone bone, Spine.Animation animation, AnimationClip clip) {
 			Skeleton skeleton = bone.Skeleton;
-			bool inheritRotation = bone.Data.Inherit.InheritsRotation();
+			bool inheritRotation = bone.Data.TransformMode.InheritsRotation();
 
 			animation.Apply(skeleton, 0, 0, false, null, 1f, MixBlend.Setup, MixDirection.In);
-			skeleton.UpdateWorldTransform(Skeleton.Physics.Update);
+			skeleton.UpdateWorldTransform();
 			float duration = animation.Duration;
 
 			AnimationCurve curve = new AnimationCurve();
@@ -870,7 +863,7 @@ namespace Spine.Unity.Editor {
 					currentTime = duration;
 
 				animation.Apply(skeleton, 0, currentTime, true, null, 1f, MixBlend.Setup, MixDirection.In);
-				skeleton.UpdateWorldTransform(Skeleton.Physics.Update);
+				skeleton.UpdateWorldTransform();
 
 				int pIndex = listIndex;
 
@@ -1456,7 +1449,7 @@ namespace Spine.Unity.Editor {
 					float time = frames[f];
 
 					timeline.Apply(skeleton, lastTime, currentTime, null, 1, MixBlend.Setup, MixDirection.In);
-					skeleton.UpdateWorldTransform(Skeleton.Physics.Update);
+					skeleton.UpdateWorldTransform();
 
 					rotation = frames[f + 1] + boneData.Rotation;
 					angle += Mathf.DeltaAngle(angle, rotation);
@@ -1470,7 +1463,7 @@ namespace Spine.Unity.Editor {
 							currentTime = time;
 
 						timeline.Apply(skeleton, lastTime, currentTime, null, 1, MixBlend.Setup, MixDirection.In);
-						skeleton.UpdateWorldTransform(Skeleton.Physics.Update);
+						skeleton.UpdateWorldTransform();
 						pk = keys[listIndex];
 
 						rotation = bone.Rotation;
@@ -1535,8 +1528,6 @@ namespace Spine.Unity.Editor {
 
 				if (!string.IsNullOrEmpty(spineEvent.String)) {
 					unityAnimationEvent.stringParameter = spineEvent.String;
-					// if string (separate from name) is set in event, fallback to objectReferenceParameter.
-					unityAnimationEvent.objectReferenceParameter = SpineEventObjectPlaceholder;
 				} else if (spineEvent.Int != 0) {
 					unityAnimationEvent.intParameter = spineEvent.Int;
 				} else if (spineEvent.Float != 0) {
@@ -1549,8 +1540,7 @@ namespace Spine.Unity.Editor {
 
 		static void AddPreviousUserEvents (ref List<AnimationEvent> allEvents, AnimationEvent[] previousEvents) {
 			foreach (AnimationEvent previousEvent in previousEvents) {
-				if (previousEvent.stringParameter == SpineEventStringId ||
-					previousEvent.objectReferenceParameter == SpineEventObjectPlaceholder)
+				if (previousEvent.stringParameter == SpineEventStringId)
 					continue;
 				AnimationEvent identicalEvent = allEvents.Find(newEvent => {
 					return newEvent.functionName == previousEvent.functionName &&

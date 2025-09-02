@@ -1,16 +1,16 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated April 5, 2025. Replaces all prior versions.
+ * Last updated July 28, 2023. Replaces all prior versions.
  *
- * Copyright (c) 2013-2025, Esoteric Software LLC
+ * Copyright (c) 2013-2023, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software or
+ * otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
@@ -23,18 +23,13 @@
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
  * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
+ * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-// Optimization option: Allows faster BuildMeshWithArrays call and avoids calling SetTriangles at the cost of
-// checking for mesh differences (vertex counts, member-wise attachment list compare) every frame.
-#define SPINE_TRIANGLECHECK
+// Not for optimization. Do not disable.
+#define SPINE_TRIANGLECHECK // Avoid calling SetTriangles at the cost of checking for mesh differences (vertex counts, memberwise attachment list compare) every frame.
 //#define SPINE_DEBUG
-
-// Important Note: When disabling this define, also disable the one in MeshGenerator.cs
-// For details, see MeshGenerator.cs.
-#define SLOT_ALPHA_DISABLES_ATTACHMENT
 
 using System;
 using System.Collections.Generic;
@@ -50,11 +45,6 @@ namespace Spine.Unity {
 		public bool hasActiveClipping;
 		public int rawVertexCount = -1;
 		public readonly ExposedList<Attachment> attachments = new ExposedList<Attachment>();
-#else
-		/// <summary>Returns constant true to avoid BuildMeshWithArrays in renderers.</summary>
-		public bool hasActiveClipping { get { return true; } }
-		/// <summary>Returns constant vertex count for early-return if-clauses in renderers.</summary>
-		public int rawVertexCount { get { return 1; } }
 #endif
 
 		public void Clear () {
@@ -66,11 +56,9 @@ namespace Spine.Unity {
 			this.submeshInstructions.Clear(false);
 		}
 
-#if SPINE_TRIANGLECHECK
 		public void Dispose () {
 			attachments.Clear(true);
 		}
-#endif
 
 		public void SetWithSubset (ExposedList<SubmeshInstruction> instructions, int startSubmesh, int endSubmesh) {
 #if SPINE_TRIANGLECHECK
@@ -107,14 +95,7 @@ namespace Spine.Unity {
 			Slot[] drawOrderItems = instructionsItems[0].skeleton.DrawOrder.Items;
 			for (int i = 0; i < attachmentCount; i++) {
 				Slot slot = drawOrderItems[startSlot + i];
-				if (!slot.Bone.Active
-#if SLOT_ALPHA_DISABLES_ATTACHMENT
-					|| slot.A == 0f
-#endif
-					) {
-					attachmentsItems[i] = null;
-					continue;
-				}
+				if (!slot.Bone.Active) continue;
 				attachmentsItems[i] = slot.Attachment;
 			}
 

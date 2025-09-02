@@ -1,16 +1,16 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated April 5, 2025. Replaces all prior versions.
+ * Last updated July 28, 2023. Replaces all prior versions.
  *
- * Copyright (c) 2013-2025, Esoteric Software LLC
+ * Copyright (c) 2013-2023, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software or
+ * otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
@@ -23,8 +23,8 @@
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
  * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
+ * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
 #pragma warning disable 0219
@@ -75,10 +75,6 @@ namespace Spine.Unity.Editor {
 		public static bool initialized;
 		private static List<string> texturesWithoutMetaFile = new List<string>();
 
-		public static void OnTextureImportedFirstTime (string texturePath) {
-			texturesWithoutMetaFile.Add(texturePath);
-		}
-
 		// Auto-import entry point for textures
 		void OnPreprocessTexture () {
 #if UNITY_2018_1_OR_NEWER
@@ -128,10 +124,10 @@ namespace Spine.Unity.Editor {
 				Mesh mesh = meshFilter.sharedMesh;
 				if (mesh == null) continue;
 
-				string meshName = string.Format("Skeleton Prefab Mesh [{0}]", renderer.name);
+				string meshName = string.Format("Skeleton Prefab Mesh \"{0}\"", renderer.name);
 				if (nameUsageCount.ContainsKey(meshName)) {
 					nameUsageCount[meshName]++;
-					meshName = string.Format("Skeleton Prefab Mesh [{0} ({1})]", renderer.name, nameUsageCount[meshName]);
+					meshName = string.Format("Skeleton Prefab Mesh \"{0} ({1})\"", renderer.name, nameUsageCount[meshName]);
 				} else {
 					nameUsageCount.Add(meshName, 0);
 				}
@@ -550,16 +546,6 @@ namespace Spine.Unity.Editor {
 		}
 	}
 
-	public class SpineAssetModificationProcessor : UnityEditor.AssetModificationProcessor {
-		static void OnWillCreateAsset (string assetName) {
-			// Note: This method seems to be called from the main thread,
-			// not from worker threads when Project Settings - Editor - Parallel Import is enabled.
-			int endIndex = assetName.LastIndexOf(".meta");
-			string assetPath = endIndex < 0 ? assetName : assetName.Substring(0, endIndex);
-			SpineEditorUtilities.OnTextureImportedFirstTime(assetPath);
-		}
-	}
-
 	public class TextureModificationWarningProcessor : UnityEditor.AssetModificationProcessor {
 		static string[] OnWillSaveAssets (string[] paths) {
 			if (SpineEditorUtilities.Preferences.textureImporterWarning) {
@@ -576,56 +562,6 @@ namespace Spine.Unity.Editor {
 				}
 			}
 			return paths;
-		}
-	}
-
-	public class AnimationWindowPreview {
-		static System.Type animationWindowType;
-		public static System.Type AnimationWindowType {
-			get {
-				if (animationWindowType == null)
-					animationWindowType = System.Type.GetType("UnityEditor.AnimationWindow,UnityEditor");
-				return animationWindowType;
-			}
-		}
-
-		public static UnityEngine.Object GetOpenAnimationWindow () {
-			UnityEngine.Object[] openAnimationWindows = Resources.FindObjectsOfTypeAll(AnimationWindowType);
-			return openAnimationWindows.Length == 0 ? null : openAnimationWindows[0];
-		}
-
-		public static AnimationClip GetAnimationClip (UnityEngine.Object animationWindow) {
-			if (animationWindow == null)
-				return null;
-
-			const BindingFlags bindingFlagsInstance = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-			FieldInfo animEditorField = AnimationWindowType.GetField("m_AnimEditor", bindingFlagsInstance);
-
-			PropertyInfo selectionProperty = animEditorField.FieldType.GetProperty("selection", bindingFlagsInstance);
-			object animEditor = animEditorField.GetValue(animationWindow);
-			if (animEditor == null) return null;
-			object selection = selectionProperty.GetValue(animEditor, null);
-			if (selection == null) return null;
-
-			PropertyInfo animationClipProperty = selection.GetType().GetProperty("animationClip");
-			return animationClipProperty.GetValue(selection, null) as AnimationClip;
-		}
-
-		public static float GetAnimationTime (UnityEngine.Object animationWindow) {
-			if (animationWindow == null)
-				return 0.0f;
-
-			const BindingFlags bindingFlagsInstance = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-			FieldInfo animEditorField = AnimationWindowType.GetField("m_AnimEditor", bindingFlagsInstance);
-			object animEditor = animEditorField.GetValue(animationWindow);
-
-			System.Type animEditorFieldType = animEditorField.FieldType;
-			PropertyInfo stateProperty = animEditorFieldType.GetProperty("state", bindingFlagsInstance);
-			System.Type animWindowStateType = stateProperty.PropertyType;
-			PropertyInfo timeProperty = animWindowStateType.GetProperty("currentTime", bindingFlagsInstance);
-
-			object state = stateProperty.GetValue(animEditor, null);
-			return (float)timeProperty.GetValue(state, null);
 		}
 	}
 }

@@ -1,16 +1,16 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated April 5, 2025. Replaces all prior versions.
+ * Last updated July 28, 2023. Replaces all prior versions.
  *
- * Copyright (c) 2013-2025, Esoteric Software LLC
+ * Copyright (c) 2013-2023, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software or
+ * otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
@@ -23,8 +23,8 @@
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
  * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
+ * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
 #if UNITY_2018_3 || UNITY_2019 || UNITY_2018_3_OR_NEWER
@@ -86,8 +86,7 @@ namespace Spine.Unity {
 		/// <summary>
 		/// Occurs after the Skeleton's bone world space values are resolved (including all constraints).
 		/// Using this callback will cause the world space values to be solved an extra time.
-		/// Use this callback if want to use bone world space values, and also set bone local values.
-		/// </summary>
+		/// Use this callback if want to use bone world space values, and also set bone local values.</summary>
 		public event UpdateBonesDelegate UpdateWorld { add { _UpdateWorld += value; } remove { _UpdateWorld -= value; } }
 
 		/// <summary>
@@ -191,7 +190,6 @@ namespace Spine.Unity {
 			if (!valid)
 				return;
 			state = new Spine.AnimationState(skeletonDataAsset.GetAnimationStateData());
-			state.Dispose += OnAnimationDisposed;
 			wasUpdatedAfterInit = false;
 
 			if (!string.IsNullOrEmpty(_animationName)) {
@@ -235,25 +233,19 @@ namespace Spine.Unity {
 				return;
 			UpdateAnimationStatus(deltaTime);
 
-			if (updateMode == UpdateMode.OnlyAnimationStatus)
+			if (updateMode == UpdateMode.OnlyAnimationStatus) {
+				state.ApplyEventTimelinesOnly(skeleton, issueEvents: false);
 				return;
+			}
 			ApplyAnimation();
 		}
 
 		protected void UpdateAnimationStatus (float deltaTime) {
 			deltaTime *= timeScale;
 			state.Update(deltaTime);
-			skeleton.Update(deltaTime);
-
-			ApplyTransformMovementToPhysics();
-
-			if (updateMode == UpdateMode.OnlyAnimationStatus) {
-				state.ApplyEventTimelinesOnly(skeleton, issueEvents: false);
-				return;
-			}
 		}
 
-		public virtual void ApplyAnimation () {
+		protected void ApplyAnimation () {
 			if (_BeforeApply != null)
 				_BeforeApply(this);
 
@@ -269,12 +261,11 @@ namespace Spine.Unity {
 			if (_UpdateLocal != null)
 				_UpdateLocal(this);
 
-			if (_UpdateWorld == null) {
-				UpdateWorldTransform(Skeleton.Physics.Update);
-			} else {
-				UpdateWorldTransform(Skeleton.Physics.Pose);
+			skeleton.UpdateWorldTransform();
+
+			if (_UpdateWorld != null) {
 				_UpdateWorld(this);
-				UpdateWorldTransform(Skeleton.Physics.Update);
+				skeleton.UpdateWorldTransform();
 			}
 
 			if (_UpdateComplete != null) {
@@ -302,14 +293,6 @@ namespace Spine.Unity {
 				Update(0);
 			if (previousUpdateMode != UpdateMode.FullUpdate)
 				LateUpdate();
-		}
-
-		protected virtual void OnAnimationDisposed (TrackEntry entry) {
-			// when updateMode disables applying animations, still ensure animations are mixed out
-			if (updateMode != UpdateMode.FullUpdate &&
-				updateMode != UpdateMode.EverythingExceptMesh) {
-				entry.Animation.Apply(skeleton, 0, 0, false, null, 0f, MixBlend.Setup, MixDirection.Out);
-			}
 		}
 	}
 

@@ -1,16 +1,16 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated April 5, 2025. Replaces all prior versions.
+ * Last updated July 28, 2023. Replaces all prior versions.
  *
- * Copyright (c) 2013-2025, Esoteric Software LLC
+ * Copyright (c) 2013-2023, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software or
+ * otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
@@ -23,8 +23,8 @@
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
  * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
+ * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
 // Contributed by: Mitch Thompson
@@ -158,10 +158,8 @@ namespace Spine.Unity.Editor {
 				}
 			}
 
-			bool isOverrideMode = mode.enumValueIndex == 1;
-			using (new EditorGUI.DisabledGroupScope(isOverrideMode))
-				EditorGUILayout.PropertyField(zPosition);
-			EditorGUILayout.PropertyField(position, new GUIContent("XY Position"));
+			EditorGUILayout.PropertyField(zPosition);
+			EditorGUILayout.PropertyField(position);
 			EditorGUILayout.PropertyField(rotation);
 			EditorGUILayout.PropertyField(scale);
 
@@ -213,7 +211,7 @@ namespace Spine.Unity.Editor {
 								GUILayout.Space(30);
 								string buttonLabel = box.IsWeighted() ? box.Name + " (!)" : box.Name;
 								if (GUILayout.Button(buttonLabel, GUILayout.Width(200))) {
-									utilityBone.bone.Skeleton.UpdateWorldTransform(Skeleton.Physics.Update);
+									utilityBone.bone.Skeleton.UpdateWorldTransform();
 									Transform bbTransform = utilityBone.transform.Find("[BoundingBox]" + box.Name); // Use FindChild in older versions of Unity.
 									if (bbTransform != null) {
 										PolygonCollider2D originalCollider = bbTransform.GetComponent<PolygonCollider2D>();
@@ -310,6 +308,7 @@ namespace Spine.Unity.Editor {
 				UnityEditor.EditorUtility.DisplayDialog("No parent SkeletonUtilityBone found!", "Please select the first physically moving chain node, having a parent GameObject with a SkeletonUtilityBone component attached.", "OK");
 				return;
 			}
+
 			float mass = 10;
 			const float rotationLimit = 20.0f;
 
@@ -333,53 +332,38 @@ namespace Spine.Unity.Editor {
 			//followRotationComponent.reference = skeletonUtility.boneRoot;
 
 			// Follower Kinematic Rigidbody
-			GameObject rootFollowerKinematic = new GameObject(kinematicParentUtilityBone.name + " Follower");
-			rootFollowerKinematic.transform.parent = normalChainParentObject.transform;
-			Rigidbody2D followerRigidbody = rootFollowerKinematic.AddComponent<Rigidbody2D>();
+			GameObject followerKinematicObject = new GameObject(kinematicParentUtilityBone.name + " Follower");
+			followerKinematicObject.transform.parent = normalChainParentObject.transform;
+			Rigidbody2D followerRigidbody = followerKinematicObject.AddComponent<Rigidbody2D>();
 			followerRigidbody.mass = mass;
 			followerRigidbody.isKinematic = true;
-			rootFollowerKinematic.AddComponent<FollowLocationRigidbody2D>().reference = kinematicParentUtilityBone.transform;
-			rootFollowerKinematic.transform.position = kinematicParentUtilityBone.transform.position;
-			rootFollowerKinematic.transform.rotation = kinematicParentUtilityBone.transform.rotation;
+			followerKinematicObject.AddComponent<FollowLocationRigidbody2D>().reference = kinematicParentUtilityBone.transform;
+			followerKinematicObject.transform.position = kinematicParentUtilityBone.transform.position;
+			followerKinematicObject.transform.rotation = kinematicParentUtilityBone.transform.rotation;
 
-			CreateHingeChain2D(utilityBone, mass, rotationLimit, normalChainParentObject.transform,
-				rootFollowerKinematic.transform, kinematicParentUtilityBone.transform);
+			// Child Bones
+			SkeletonUtilityBone[] utilityBones = utilityBone.GetComponentsInChildren<SkeletonUtilityBone>();
+			Transform childBoneParentReference = followerKinematicObject.transform;
+			for (int i = 0; i < utilityBones.Length; ++i) {
+				SkeletonUtilityBone childBone = utilityBones[i];
+				mass *= 0.75f;
+				childBone.parentReference = (i == 0) ? kinematicParentUtilityBone.transform : childBoneParentReference;
+				childBone.transform.SetParent(normalChainParentObject.transform, true); // we need a flat hierarchy of all Joint objects in Unity.
+				AttachRigidbodyAndCollider2D(childBone);
+				childBone.mode = SkeletonUtilityBone.Mode.Override;
+				childBone.scale = childBone.position = childBone.zPosition = false;
+
+				HingeJoint2D joint = childBone.gameObject.AddComponent<HingeJoint2D>();
+				joint.connectedBody = childBoneParentReference.GetComponent<Rigidbody2D>();
+				joint.useLimits = true;
+				ApplyJoint2DAngleLimits(joint, rotationLimit, childBoneParentReference, childBone.transform);
+
+				childBone.GetComponent<Rigidbody2D>().mass = mass;
+				childBoneParentReference = childBone.transform;
+			}
 
 			Duplicate2DHierarchyForFlippedChains(normalChainParentObject, commonParentActivateOnFlip, skeletonUtility.transform, rotationLimit);
 			UnityEditor.Selection.activeGameObject = commonParentObject;
-		}
-
-		void CreateHingeChain2D (SkeletonUtilityBone bone, float mass, float rotationLimit, Transform groupObject,
-			Transform jointParent, Transform utilityParent) {
-
-			mass *= 0.75f;
-			bone.parentReference = utilityParent;
-			bone.transform.SetParent(groupObject, true); // we need a flat hierarchy of all Joint objects in Unity.
-			AttachRigidbodyAndCollider2D(bone);
-			bone.mode = SkeletonUtilityBone.Mode.Override;
-			bone.scale = bone.position = bone.zPosition = false;
-
-			HingeJoint2D joint = bone.gameObject.AddComponent<HingeJoint2D>();
-			joint.connectedBody = jointParent.GetComponent<Rigidbody2D>();
-			joint.useLimits = true;
-			ApplyJoint2DAngleLimits(joint, rotationLimit, jointParent, bone.transform);
-			bone.GetComponent<Rigidbody2D>().mass = mass;
-
-			Transform parent = bone.transform;
-			List<SkeletonUtilityBone> children = new List<SkeletonUtilityBone>();
-			int utilityChildCount = 0;
-			for (int i = 0; i < parent.childCount; ++i) {
-				var childUtilityBone = parent.GetChild(i).GetComponent<SkeletonUtilityBone>();
-				if (childUtilityBone != null)
-					children.Add(childUtilityBone);
-			}
-			mass /= Mathf.Max(1.0f, utilityChildCount);
-
-			for (int i = 0; i < children.Count; ++i) {
-				SkeletonUtilityBone childBone = children[i];
-				if (childBone == null) continue;
-				CreateHingeChain2D(childBone, mass, rotationLimit, groupObject, parent, parent);
-			}
 		}
 
 		void ApplyJoint2DAngleLimits (HingeJoint2D joint, float rotationLimit, Transform parentBone, Transform bone) {
@@ -466,8 +450,6 @@ namespace Spine.Unity.Editor {
 				UnityEditor.EditorUtility.DisplayDialog("No parent SkeletonUtilityBone found!", "Please select the first physically moving chain node, having a parent GameObject with a SkeletonUtilityBone component attached.", "OK");
 				return;
 			}
-			float mass = 10;
-			const float rotationLimit = 20.0f;
 
 			SetSkeletonUtilityToFlipByRotation();
 
@@ -481,55 +463,37 @@ namespace Spine.Unity.Editor {
 			followRotationComponent.reference = skeletonUtility.boneRoot;
 
 			// Follower Kinematic Rigidbody
-			GameObject rootFollowerKinematic = new GameObject(kinematicParentUtilityBone.name + " Follower");
-			rootFollowerKinematic.transform.parent = chainParentObject.transform;
-			Rigidbody followerRigidbody = rootFollowerKinematic.AddComponent<Rigidbody>();
-			followerRigidbody.mass = mass;
+			GameObject followerKinematicObject = new GameObject(kinematicParentUtilityBone.name + " Follower");
+			followerKinematicObject.transform.parent = chainParentObject.transform;
+			Rigidbody followerRigidbody = followerKinematicObject.AddComponent<Rigidbody>();
+			followerRigidbody.mass = 10;
 			followerRigidbody.isKinematic = true;
-			rootFollowerKinematic.AddComponent<FollowLocationRigidbody>().reference = kinematicParentUtilityBone.transform;
-			rootFollowerKinematic.transform.position = kinematicParentUtilityBone.transform.position;
-			rootFollowerKinematic.transform.rotation = kinematicParentUtilityBone.transform.rotation;
+			followerKinematicObject.AddComponent<FollowLocationRigidbody>().reference = kinematicParentUtilityBone.transform;
+			followerKinematicObject.transform.position = kinematicParentUtilityBone.transform.position;
+			followerKinematicObject.transform.rotation = kinematicParentUtilityBone.transform.rotation;
 
-			CreateHingeChain(utilityBone, mass, rotationLimit, chainParentObject.transform, rootFollowerKinematic.transform);
+			// Child Bones
+			SkeletonUtilityBone[] utilityBones = utilityBone.GetComponentsInChildren<SkeletonUtilityBone>();
+			Transform childBoneParentReference = followerKinematicObject.transform;
+			foreach (SkeletonUtilityBone childBone in utilityBones) {
+				childBone.parentReference = childBoneParentReference;
+				childBone.transform.SetParent(chainParentObject.transform, true); // we need a flat hierarchy of all Joint objects in Unity.
+				AttachRigidbodyAndCollider(childBone);
+				childBone.mode = SkeletonUtilityBone.Mode.Override;
 
+				HingeJoint joint = childBone.gameObject.AddComponent<HingeJoint>();
+				joint.axis = Vector3.forward;
+				joint.connectedBody = childBoneParentReference.GetComponent<Rigidbody>();
+				joint.useLimits = true;
+				joint.limits = new JointLimits {
+					min = -20,
+					max = 20
+				};
+				childBone.GetComponent<Rigidbody>().mass = childBoneParentReference.transform.GetComponent<Rigidbody>().mass * 0.75f;
+
+				childBoneParentReference = childBone.transform;
+			}
 			UnityEditor.Selection.activeGameObject = chainParentObject;
-		}
-
-		void CreateHingeChain (SkeletonUtilityBone bone, float mass, float rotationLimit, Transform groupObject,
-			Transform jointParent) {
-
-			mass *= 0.75f;
-
-			bone.parentReference = jointParent;
-			bone.transform.SetParent(groupObject.transform, true); // we need a flat hierarchy of all Joint objects in Unity.
-			AttachRigidbodyAndCollider(bone);
-			bone.mode = SkeletonUtilityBone.Mode.Override;
-
-			HingeJoint joint = bone.gameObject.AddComponent<HingeJoint>();
-			joint.axis = Vector3.forward;
-			joint.connectedBody = jointParent.GetComponent<Rigidbody>();
-			joint.useLimits = true;
-			joint.limits = new JointLimits {
-				min = -rotationLimit,
-				max = rotationLimit
-			};
-			bone.GetComponent<Rigidbody>().mass = mass;
-
-			Transform parent = bone.transform;
-			List<SkeletonUtilityBone> children = new List<SkeletonUtilityBone>();
-			int utilityChildCount = 0;
-			for (int i = 0; i < parent.childCount; ++i) {
-				var childUtilityBone = parent.GetChild(i).GetComponent<SkeletonUtilityBone>();
-				if (childUtilityBone != null)
-					children.Add(childUtilityBone);
-			}
-			mass /= Mathf.Max(1.0f, utilityChildCount);
-
-			for (int i = 0; i < children.Count; ++i) {
-				SkeletonUtilityBone childBone = children[i];
-				if (childBone == null) continue;
-				CreateHingeChain(childBone, mass, rotationLimit, groupObject, parent);
-			}
 		}
 
 		void SetSkeletonUtilityToFlipByRotation () {

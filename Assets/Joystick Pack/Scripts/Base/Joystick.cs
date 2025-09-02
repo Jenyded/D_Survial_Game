@@ -1,13 +1,15 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
-    public float Horizontal { get { return (snapX) ? SnapFloat(input.x, AxisOptions.Horizontal) : input.x; } }
-    public float Vertical { get { return (snapY) ? SnapFloat(input.y, AxisOptions.Vertical) : input.y; } }
-    public Vector2 Direction { get { return new Vector2(Horizontal, Vertical); } }
+    public static event Action Clicked; 
+    public static float Horizontal { get { return (snapX) ? SnapFloat(input.x, AxisOptions.Horizontal) : input.x; } }
+    public static float Vertical { get { return (snapY) ? SnapFloat(input.y, AxisOptions.Vertical) : input.y; } }
+    public static Vector2 Direction { get { return new Vector2(Horizontal, Vertical); } }
 
     public float HandleRange
     {
@@ -27,9 +29,9 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
     [SerializeField] private float handleRange = 1;
     [SerializeField] private float deadZone = 0;
-    [SerializeField] private AxisOptions axisOptions = AxisOptions.Both;
-    [SerializeField] private bool snapX = false;
-    [SerializeField] private bool snapY = false;
+    [SerializeField] private static AxisOptions axisOptions = AxisOptions.Both;
+    [SerializeField] private static bool snapX = false;
+    [SerializeField] private static bool snapY = false;
 
     [SerializeField] protected RectTransform background = null;
     [SerializeField] private RectTransform handle = null;
@@ -37,8 +39,11 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
     private Canvas canvas;
     private Camera cam;
+    
+    private float _pressingTime;
+    private bool _pressing;
 
-    private Vector2 input = Vector2.zero;
+    private static Vector2 input = Vector2.zero;
 
     protected virtual void Start()
     {
@@ -59,6 +64,8 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
     public virtual void OnPointerDown(PointerEventData eventData)
     {
+        _pressingTime = 0f;
+        _pressing = true;
         OnDrag(eventData);
     }
 
@@ -95,7 +102,7 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
             input = new Vector2(0f, input.y);
     }
 
-    private float SnapFloat(float value, AxisOptions snapAxis)
+    private static float SnapFloat(float value, AxisOptions snapAxis)
     {
         if (value == 0)
             return value;
@@ -131,6 +138,11 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
     public virtual void OnPointerUp(PointerEventData eventData)
     {
+        _pressing = false;
+        
+        if (_pressingTime <= 0.15f)
+            Clicked?.Invoke();
+        
         input = Vector2.zero;
         handle.anchoredPosition = Vector2.zero;
     }
@@ -144,6 +156,12 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
             return localPoint - (background.anchorMax * baseRect.sizeDelta) + pivotOffset;
         }
         return Vector2.zero;
+    }
+    
+    private void Update()
+    {
+        if (_pressing)
+            _pressingTime += Time.deltaTime;
     }
 }
 

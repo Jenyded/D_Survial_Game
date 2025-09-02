@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Configs
+  m_EditorClassIdentifier: 
+  m_GroupName: Configs
+  m_Data:
+    m_SerializedData: []
+  m_GUID: e504a31f470489549b07b33a59489b76
+  m_SerializeEntries:
+  - m_GUID: 83fa0873b0a01f5438a4e49cac0ae850
+    m_Address: TestEnemy
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - EnemyConfig
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 88f828164c9fc384cb0b91878319b2ee
+    m_Address: Savage
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - CharacterConfig
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a99c7f74be24a7e40a10ad23a7da1ef4
+    m_Address: UIConfig
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UIConfig
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: dc703cc732bf4cd4ea3a554affca322e, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 5f9b05896f5b46f45a17b8c5fad41dd4, type: 2}
+    - {fileID: 11400000, guid: 3a49309df7bb09f48b6e8cf0173a3946, type: 2}

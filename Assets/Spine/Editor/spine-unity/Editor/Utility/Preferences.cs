@@ -1,16 +1,16 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated April 5, 2025. Replaces all prior versions.
+ * Last updated July 28, 2023. Replaces all prior versions.
  *
- * Copyright (c) 2013-2025, Esoteric Software LLC
+ * Copyright (c) 2013-2023, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software or
+ * otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
@@ -23,8 +23,8 @@
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
  * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
+ * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
 #pragma warning disable 0219
@@ -115,13 +115,6 @@ namespace Spine.Unity.Editor {
 			const string DEFAULT_INSTANTIATE_LOOP_KEY = "SPINE_DEFAULT_INSTANTIATE_LOOP";
 			public static bool defaultInstantiateLoop = SpinePreferences.DEFAULT_DEFAULT_INSTANTIATE_LOOP;
 
-			const string DEFAULT_PHYSICS_POSITION_INHERITANCE_X_KEY = "SPINE_DEFAULT_PHYSICS_POSITION_INHERITANCE_X";
-			const string DEFAULT_PHYSICS_POSITION_INHERITANCE_Y_KEY = "SPINE_DEFAULT_PHYSICS_POSITION_INHERITANCE_Y";
-			public static Vector2 defaultPhysicsPositionInheritance = SpinePreferences.DEFAULT_DEFAULT_PHYSICS_POSITION_INHERITANCE;
-
-			const string DEFAULT_PHYSICS_ROTATION_INHERITANCE_KEY = "SPINE_DEFAULT_PHYSICS_ROTATION_INHERITANCE";
-			public static float defaultPhysicsRotationInheritance = SpinePreferences.DEFAULT_DEFAULT_PHYSICS_ROTATION_INHERITANCE;
-
 			const string SHOW_HIERARCHY_ICONS_KEY = "SPINE_SHOW_HIERARCHY_ICONS";
 			public static bool showHierarchyIcons = SpinePreferences.DEFAULT_SHOW_HIERARCHY_ICONS;
 
@@ -140,15 +133,12 @@ namespace Spine.Unity.Editor {
 				}
 			}
 
-			const string APPLY_ADDITIVE_MATERIAL_KEY = "SPINE_APPLY_ADDITIVE_MATERIAL";
 			const string BLEND_MODE_MATERIAL_MULTIPLY_KEY = "SPINE_BLENDMODE_MATERIAL_MULTIPLY";
 			const string BLEND_MODE_MATERIAL_SCREEN_KEY = "SPINE_BLENDMODE_MATERIAL_SCREEN";
 			const string BLEND_MODE_MATERIAL_ADDITIVE_KEY = "SPINE_BLENDMODE_MATERIAL_ADDITIVE";
-			public static bool applyAdditiveMaterial = false;
 			public static string blendModeMaterialMultiply = "";
 			public static string blendModeMaterialScreen = "";
 			public static string blendModeMaterialAdditive = "";
-			public const bool DEFAULT_APPLY_ADDITIVE_MATERIAL = SpinePreferences.DEFAULT_APPLY_ADDITIVE_MATERIAL;
 			public const string DEFAULT_BLEND_MODE_MULTIPLY_MATERIAL = SpinePreferences.DEFAULT_BLEND_MODE_MULTIPLY_MATERIAL;
 			public const string DEFAULT_BLEND_MODE_SCREEN_MATERIAL = SpinePreferences.DEFAULT_BLEND_MODE_SCREEN_MATERIAL;
 			public const string DEFAULT_BLEND_MODE_ADDITIVE_MATERIAL = SpinePreferences.DEFAULT_BLEND_MODE_ADDITIVE_MATERIAL;
@@ -201,16 +191,11 @@ namespace Spine.Unity.Editor {
 				defaultMix = EditorPrefs.GetFloat(DEFAULT_MIX_KEY, SpinePreferences.DEFAULT_DEFAULT_MIX);
 				defaultScale = EditorPrefs.GetFloat(DEFAULT_SCALE_KEY, SpinePreferences.DEFAULT_DEFAULT_SCALE);
 				defaultZSpacing = EditorPrefs.GetFloat(DEFAULT_ZSPACING_KEY, SpinePreferences.DEFAULT_DEFAULT_ZSPACING);
-				defaultInstantiateLoop = EditorPrefs.GetBool(DEFAULT_INSTANTIATE_LOOP_KEY, SpinePreferences.DEFAULT_DEFAULT_INSTANTIATE_LOOP);
-				defaultPhysicsPositionInheritance.x = EditorPrefs.GetFloat(DEFAULT_PHYSICS_POSITION_INHERITANCE_X_KEY, SpinePreferences.DEFAULT_DEFAULT_PHYSICS_POSITION_INHERITANCE.x);
-				defaultPhysicsPositionInheritance.y = EditorPrefs.GetFloat(DEFAULT_PHYSICS_POSITION_INHERITANCE_Y_KEY, SpinePreferences.DEFAULT_DEFAULT_PHYSICS_POSITION_INHERITANCE.y);
-				defaultPhysicsRotationInheritance = EditorPrefs.GetFloat(DEFAULT_PHYSICS_ROTATION_INHERITANCE_KEY, SpinePreferences.DEFAULT_DEFAULT_PHYSICS_ROTATION_INHERITANCE);
 				defaultShader = EditorPrefs.GetString(DEFAULT_SHADER_KEY, SpinePreferences.DEFAULT_DEFAULT_SHADER);
 				showHierarchyIcons = EditorPrefs.GetBool(SHOW_HIERARCHY_ICONS_KEY, SpinePreferences.DEFAULT_SHOW_HIERARCHY_ICONS);
 				reloadAfterPlayMode = EditorPrefs.GetBool(RELOAD_AFTER_PLAYMODE_KEY, SpinePreferences.DEFAULT_RELOAD_AFTER_PLAYMODE);
 				setTextureImporterSettings = EditorPrefs.GetBool(SET_TEXTUREIMPORTER_SETTINGS_KEY, SpinePreferences.DEFAULT_SET_TEXTUREIMPORTER_SETTINGS);
 				textureSettingsReference = EditorPrefs.GetString(TEXTURE_SETTINGS_REFERENCE_KEY, SpinePreferences.DEFAULT_TEXTURE_SETTINGS_REFERENCE);
-				applyAdditiveMaterial = EditorPrefs.GetBool(APPLY_ADDITIVE_MATERIAL_KEY, SpinePreferences.DEFAULT_APPLY_ADDITIVE_MATERIAL);
 				blendModeMaterialMultiply = EditorPrefs.GetString(BLEND_MODE_MATERIAL_MULTIPLY_KEY, "");
 				blendModeMaterialScreen = EditorPrefs.GetString(BLEND_MODE_MATERIAL_SCREEN_KEY, "");
 				blendModeMaterialAdditive = EditorPrefs.GetString(BLEND_MODE_MATERIAL_ADDITIVE_KEY, "");
@@ -231,10 +216,6 @@ namespace Spine.Unity.Editor {
 				newPreferences.defaultMix = EditorPrefs.GetFloat(DEFAULT_MIX_KEY, SpinePreferences.DEFAULT_DEFAULT_MIX);
 				newPreferences.defaultScale = EditorPrefs.GetFloat(DEFAULT_SCALE_KEY, SpinePreferences.DEFAULT_DEFAULT_SCALE);
 				newPreferences.defaultZSpacing = EditorPrefs.GetFloat(DEFAULT_ZSPACING_KEY, SpinePreferences.DEFAULT_DEFAULT_ZSPACING);
-				newPreferences.defaultInstantiateLoop = EditorPrefs.GetBool(DEFAULT_INSTANTIATE_LOOP_KEY, SpinePreferences.DEFAULT_DEFAULT_INSTANTIATE_LOOP);
-				newPreferences.defaultPhysicsPositionInheritance.x = EditorPrefs.GetFloat(DEFAULT_PHYSICS_POSITION_INHERITANCE_X_KEY, SpinePreferences.DEFAULT_DEFAULT_PHYSICS_POSITION_INHERITANCE.x);
-				newPreferences.defaultPhysicsPositionInheritance.y = EditorPrefs.GetFloat(DEFAULT_PHYSICS_POSITION_INHERITANCE_Y_KEY, SpinePreferences.DEFAULT_DEFAULT_PHYSICS_POSITION_INHERITANCE.y);
-				newPreferences.defaultPhysicsRotationInheritance = EditorPrefs.GetFloat(DEFAULT_PHYSICS_ROTATION_INHERITANCE_KEY, SpinePreferences.DEFAULT_DEFAULT_PHYSICS_ROTATION_INHERITANCE);
 				newPreferences.defaultShader = EditorPrefs.GetString(DEFAULT_SHADER_KEY, SpinePreferences.DEFAULT_DEFAULT_SHADER);
 				newPreferences.showHierarchyIcons = EditorPrefs.GetBool(SHOW_HIERARCHY_ICONS_KEY, SpinePreferences.DEFAULT_SHOW_HIERARCHY_ICONS);
 				newPreferences.reloadAfterPlayMode = EditorPrefs.GetBool(RELOAD_AFTER_PLAYMODE_KEY, SpinePreferences.DEFAULT_RELOAD_AFTER_PLAYMODE);
@@ -255,10 +236,6 @@ namespace Spine.Unity.Editor {
 				EditorPrefs.SetFloat(DEFAULT_MIX_KEY, preferences.defaultMix);
 				EditorPrefs.SetFloat(DEFAULT_SCALE_KEY, preferences.defaultScale);
 				EditorPrefs.SetFloat(DEFAULT_ZSPACING_KEY, preferences.defaultZSpacing);
-				EditorPrefs.SetBool(DEFAULT_INSTANTIATE_LOOP_KEY, preferences.defaultInstantiateLoop);
-				EditorPrefs.SetFloat(DEFAULT_PHYSICS_POSITION_INHERITANCE_X_KEY, preferences.defaultPhysicsPositionInheritance.x);
-				EditorPrefs.SetFloat(DEFAULT_PHYSICS_POSITION_INHERITANCE_Y_KEY, preferences.defaultPhysicsPositionInheritance.y);
-				EditorPrefs.SetFloat(DEFAULT_PHYSICS_ROTATION_INHERITANCE_KEY, preferences.defaultPhysicsRotationInheritance);
 				EditorPrefs.SetString(DEFAULT_SHADER_KEY, preferences.defaultShader);
 				EditorPrefs.SetBool(SHOW_HIERARCHY_ICONS_KEY, preferences.showHierarchyIcons);
 				EditorPrefs.SetBool(RELOAD_AFTER_PLAYMODE_KEY, preferences.reloadAfterPlayMode);
@@ -317,7 +294,6 @@ namespace Spine.Unity.Editor {
 						}
 					}
 
-					SpineEditorUtilities.BoolPrefsField(ref applyAdditiveMaterial, APPLY_ADDITIVE_MATERIAL_KEY, new GUIContent("Apply Additive Material", "The Default Apply Additive Material setting for newly imported SkeletonDataAssets."));
 					SpineEditorUtilities.MaterialPrefsField(ref blendModeMaterialAdditive, BLEND_MODE_MATERIAL_ADDITIVE_KEY, new GUIContent("Additive Material", "Additive blend mode Material template."));
 					if (string.IsNullOrEmpty(blendModeMaterialAdditive)) {
 						string[] blendModeMaterialAdditiveGUIDS = AssetDatabase.FindAssets(DEFAULT_BLEND_MODE_ADDITIVE_MATERIAL);
@@ -360,16 +336,6 @@ namespace Spine.Unity.Editor {
 						EditorPrefs.SetFloat(DEFAULT_ZSPACING_KEY, defaultZSpacing);
 
 					SpineEditorUtilities.BoolPrefsField(ref defaultInstantiateLoop, DEFAULT_INSTANTIATE_LOOP_KEY, new GUIContent("Default Loop", "Spawn Spine GameObjects with loop enabled."));
-
-					EditorGUILayout.LabelField("Physics Inheritance");
-					using (new SpineInspectorUtility.IndentScope()) {
-						float positionX = defaultPhysicsPositionInheritance.x;
-						float positionY = defaultPhysicsPositionInheritance.y;
-						SpineEditorUtilities.FloatPrefsField(ref positionX, DEFAULT_PHYSICS_POSITION_INHERITANCE_X_KEY, new GUIContent("Default Position X", "The Default Physics Inheritance - Position X factor."));
-						SpineEditorUtilities.FloatPrefsField(ref positionY, DEFAULT_PHYSICS_POSITION_INHERITANCE_Y_KEY, new GUIContent("Default Position Y", "The Default Physics Inheritance - Position Y factor."));
-						defaultPhysicsPositionInheritance = new Vector2(positionX, positionY);
-						SpineEditorUtilities.FloatPrefsField(ref defaultPhysicsRotationInheritance, DEFAULT_PHYSICS_ROTATION_INHERITANCE_KEY, new GUIContent("Default Rotation", "The Default Physics Inheritance - Rotation factor."));
-					}
 				}
 
 				EditorGUILayout.Space();

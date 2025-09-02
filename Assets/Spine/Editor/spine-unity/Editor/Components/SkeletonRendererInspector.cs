@@ -1,16 +1,16 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated April 5, 2025. Replaces all prior versions.
+ * Last updated July 28, 2023. Replaces all prior versions.
  *
- * Copyright (c) 2013-2025, Esoteric Software LLC
+ * Copyright (c) 2013-2023, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software or
+ * otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
@@ -23,8 +23,8 @@
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
  * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
+ * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
 #if UNITY_2018_3 || UNITY_2019 || UNITY_2018_3_OR_NEWER
@@ -68,7 +68,6 @@ namespace Spine.Unity.Editor {
 		protected SerializedProperty normals, tangents, zSpacing, pmaVertexColors, tintBlack; // MeshGenerator settings
 		protected SerializedProperty maskInteraction;
 		protected SerializedProperty maskMaterialsNone, maskMaterialsInside, maskMaterialsOutside;
-		protected SerializedProperty physicsPositionInheritanceFactor, physicsRotationInheritanceFactor, physicsMovementRelativeTo;
 		protected SpineInspectorUtility.SerializedSortingProperties sortingProperties;
 		protected bool wasInitParameterChanged = false;
 		protected bool requireRepaint = false;
@@ -87,23 +86,6 @@ namespace Spine.Unity.Editor {
 		protected GUIContent NormalsLabel, TangentsLabel, MaskInteractionLabel;
 		protected GUIContent MaskMaterialsHeadingLabel, MaskMaterialsNoneLabel, MaskMaterialsInsideLabel, MaskMaterialsOutsideLabel;
 		protected GUIContent SetMaterialButtonLabel, ClearMaterialButtonLabel, DeleteMaterialButtonLabel;
-
-		readonly GUIContent PhysicsPositionInheritanceFactorLabel = new GUIContent("Position",
-			"When set to non-zero, Transform position movement in X and Y direction is applied to skeleton " +
-			"PhysicsConstraints, multiplied by these " +
-			"\nX and Y scale factors to the right. Typical (X,Y) values are " +
-			"\n(1,1) to apply XY movement normally, " +
-			"\n(2,2) to apply movement with double intensity, " +
-			"\n(1,0) to apply only horizontal movement, or" +
-			"\n(0,0) to not apply any Transform position movement at all.");
-		readonly GUIContent PhysicsRotationInheritanceFactorLabel = new GUIContent("Rotation",
-			"When set to non-zero, Transform rotation movement is applied to skeleton PhysicsConstraints, " +
-			"multiplied by this scale factor to the right. Typical values are " +
-			"\n1 to apply movement normally, " +
-			"\n2 to apply movement with double intensity, or " +
-			"\n0 to not apply any Transform rotation movement at all.");
-		readonly GUIContent PhysicsMovementRelativeToLabel = new GUIContent("Movement relative to",
-			"Reference transform relative to which physics movement will be calculated, or null to use world location.");
 
 		const string ReloadButtonString = "Reload";
 		static GUILayoutOption reloadButtonWidth;
@@ -179,9 +161,6 @@ namespace Spine.Unity.Editor {
 			maskMaterialsNone = so.FindProperty("maskMaterials.materialsMaskDisabled");
 			maskMaterialsInside = so.FindProperty("maskMaterials.materialsInsideMask");
 			maskMaterialsOutside = so.FindProperty("maskMaterials.materialsOutsideMask");
-			physicsPositionInheritanceFactor = so.FindProperty("physicsPositionInheritanceFactor");
-			physicsRotationInheritanceFactor = so.FindProperty("physicsRotationInheritanceFactor");
-			physicsMovementRelativeTo = so.FindProperty("physicsMovementRelativeTo");
 
 			separatorSlotNames = so.FindProperty("separatorSlotNames");
 			separatorSlotNames.isExpanded = true;
@@ -427,19 +406,6 @@ namespace Spine.Unity.Editor {
 														differentMaskModesSelected, allowDelete: true, isActiveMaterial: activeMaskInteractionValue == (int)SpriteMaskInteraction.VisibleOutsideMask);
 						}
 #endif
-						using (new SpineInspectorUtility.LabelWidthScope()) {
-							EditorGUILayout.LabelField(SpineInspectorUtility.TempContent("Physics Inheritance", SpineEditorUtilities.Icons.constraintPhysics), EditorStyles.boldLabel);
-
-							using (new GUILayout.HorizontalScope()) {
-								EditorGUILayout.LabelField(PhysicsPositionInheritanceFactorLabel, GUILayout.Width(EditorGUIUtility.labelWidth));
-								int savedIndentLevel = EditorGUI.indentLevel;
-								EditorGUI.indentLevel = 0;
-								EditorGUILayout.PropertyField(physicsPositionInheritanceFactor, GUIContent.none, GUILayout.MinWidth(60));
-								EditorGUI.indentLevel = savedIndentLevel;
-							}
-							EditorGUILayout.PropertyField(physicsRotationInheritanceFactor, PhysicsRotationInheritanceFactorLabel);
-							EditorGUILayout.PropertyField(physicsMovementRelativeTo, PhysicsMovementRelativeToLabel);
-						}
 
 						EditorGUILayout.Space();
 

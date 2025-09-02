@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7d55fe395ca4cfbb7e6ccdee8b2d22e, type: 3}
+  m_Name: HealthPotion
+  m_EditorClassIdentifier: 
+  Name: Health Potion
+  Icon: {fileID: 0}
+  Cooldown: 40
+  Effects:
+  - rid: 6040528345057198162
+  references:
+    version: 2
+    RefIds:
+    - rid: 6040528345057198162
+      type: {class: HealEffect, ns: _Project.Scripts.Gameplay.Skills, asm: Assembly-CSharp}
+      data:
+        OnSelf: 1
+        Heal: 100

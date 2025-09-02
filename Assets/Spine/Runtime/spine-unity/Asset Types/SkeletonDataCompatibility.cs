@@ -1,16 +1,16 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated April 5, 2025. Replaces all prior versions.
+ * Last updated July 28, 2023. Replaces all prior versions.
  *
- * Copyright (c) 2013-2025, Esoteric Software LLC
+ * Copyright (c) 2013-2023, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software or
+ * otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
@@ -23,19 +23,9 @@
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
  * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
+ * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
-
-//#define SPINE_ALLOW_UNSAFE // note: this define can be set via Edit - Preferences - Spine.
-
-#if UNITY_2021_2_OR_NEWER
-#define TEXT_ASSET_HAS_GET_DATA_BYTES
-#endif
-
-#if SPINE_ALLOW_UNSAFE && TEXT_ASSET_HAS_GET_DATA_BYTES
-#define UNSAFE_DIRECT_ACCESS_TEXT_ASSET_DATA
-#endif
 
 using System;
 using System.Collections.Generic;
@@ -51,8 +41,8 @@ namespace Spine.Unity {
 	public static class SkeletonDataCompatibility {
 
 #if UNITY_EDITOR
-		static readonly int[][] compatibleBinaryVersions = { new[] { 4, 2, 0 } };
-		static readonly int[][] compatibleJsonVersions = { new[] { 4, 2, 0 } };
+		static readonly int[][] compatibleBinaryVersions = { new[] { 4, 1, 0 } };
+		static readonly int[][] compatibleJsonVersions = { new[] { 4, 1, 0 } };
 
 		static bool wasVersionDialogShown = false;
 		static readonly Regex jsonVersionRegex = new Regex(@"""spine""\s*:\s*""([^""]+)""", RegexOptions.CultureInvariant);
@@ -116,12 +106,8 @@ namespace Spine.Unity {
 
 			if (fileVersion.sourceType == SourceType.Binary) {
 				try {
-#if UNSAFE_DIRECT_ACCESS_TEXT_ASSET_DATA
-					using (Stream stream = asset.GetStreamUnsafe()) {
-#else
-					using (MemoryStream stream = new MemoryStream(asset.bytes)) {
-#endif
-						fileVersion.rawVersion = SkeletonBinary.GetVersionString(stream);
+					using (MemoryStream memStream = new MemoryStream(asset.bytes)) {
+						fileVersion.rawVersion = SkeletonBinary.GetVersionString(memStream);
 					}
 				} catch (System.Exception e) {
 					problemDescription = string.Format("Failed to read '{0}'. It is likely not a binary Spine SkeletonData file.\n{1}", asset.name, e);
@@ -176,11 +162,8 @@ namespace Spine.Unity {
 		}
 
 		public static bool IsJsonFile (TextAsset file) {
-#if TEXT_ASSET_HAS_GET_DATA_BYTES
-			var content = file.GetData<byte>();
-#else
 			byte[] content = file.bytes;
-#endif
+
 			// check for binary skeleton version number string, starts after 8 byte hash
 			char majorVersionChar = compatibleBinaryVersions[0][0].ToString()[0];
 			if (content.Length > 10 && content[9] == majorVersionChar && content[10] == '.')

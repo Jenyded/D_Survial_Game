@@ -1,16 +1,16 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated April 5, 2025. Replaces all prior versions.
+ * Last updated July 28, 2023. Replaces all prior versions.
  *
- * Copyright (c) 2013-2025, Esoteric Software LLC
+ * Copyright (c) 2013-2023, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software or
+ * otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
@@ -23,15 +23,13 @@
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
  * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
+ * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
 using System;
 
 namespace Spine {
-	using Physics = Skeleton.Physics;
-
 	/// <summary>
 	/// <para>
 	/// Stores the current pose for a transform constraint. A transform constraint adjusts the world transform of the constrained
@@ -51,25 +49,28 @@ namespace Spine {
 			if (data == null) throw new ArgumentNullException("data", "data cannot be null.");
 			if (skeleton == null) throw new ArgumentNullException("skeleton", "skeleton cannot be null.");
 			this.data = data;
-
-			bones = new ExposedList<Bone>();
-			foreach (BoneData boneData in data.bones)
-				bones.Add(skeleton.bones.Items[boneData.index]);
-
-			target = skeleton.bones.Items[data.target.index];
-
 			mixRotate = data.mixRotate;
 			mixX = data.mixX;
 			mixY = data.mixY;
 			mixScaleX = data.mixScaleX;
 			mixScaleY = data.mixScaleY;
 			mixShearY = data.mixShearY;
+			bones = new ExposedList<Bone>();
+			foreach (BoneData boneData in data.bones)
+				bones.Add(skeleton.bones.Items[boneData.index]);
+
+			target = skeleton.bones.Items[data.target.index];
 		}
 
 		/// <summary>Copy constructor.</summary>
-		public TransformConstraint (TransformConstraint constraint, Skeleton skeleton)
-			: this(constraint.data, skeleton) {
-
+		public TransformConstraint (TransformConstraint constraint, Skeleton skeleton) {
+			if (constraint == null) throw new ArgumentNullException("constraint cannot be null.");
+			if (skeleton == null) throw new ArgumentNullException("skeleton cannot be null.");
+			data = constraint.data;
+			bones = new ExposedList<Bone>(constraint.Bones.Count);
+			foreach (Bone bone in constraint.Bones)
+				bones.Add(skeleton.Bones.Items[bone.data.index]);
+			target = skeleton.Bones.Items[constraint.target.data.index];
 			mixRotate = constraint.mixRotate;
 			mixX = constraint.mixX;
 			mixY = constraint.mixY;
@@ -78,17 +79,7 @@ namespace Spine {
 			mixShearY = constraint.mixShearY;
 		}
 
-		public void SetToSetupPose () {
-			TransformConstraintData data = this.data;
-			mixRotate = data.mixRotate;
-			mixX = data.mixX;
-			mixY = data.mixY;
-			mixScaleX = data.mixScaleX;
-			mixScaleY = data.mixScaleY;
-			mixShearY = data.mixShearY;
-		}
-
-		public void Update (Physics physics) {
+		public void Update () {
 			if (mixRotate == 0 && mixX == 0 && mixY == 0 && mixScaleX == 0 && mixScaleY == 0 && mixShearY == 0) return;
 			if (data.local) {
 				if (data.relative)
@@ -245,7 +236,11 @@ namespace Spine {
 				Bone bone = bones[i];
 
 				float rotation = bone.arotation;
-				if (mixRotate != 0) rotation += (target.arotation - rotation + data.offsetRotation) * mixRotate;
+				if (mixRotate != 0) {
+					float r = target.arotation - rotation + data.offsetRotation;
+					r -= (16384 - (int)(16384.499999999996 - r / 360)) * 360;
+					rotation += r * mixRotate;
+				}
 
 				float x = bone.ax, y = bone.ay;
 				x += (target.ax - x + data.offsetX) * mixX;
@@ -258,7 +253,11 @@ namespace Spine {
 					scaleY = (scaleY + (target.ascaleY - scaleY + data.offsetScaleY) * mixScaleY) / scaleY;
 
 				float shearY = bone.ashearY;
-				if (mixShearY != 0) shearY += (target.ashearY - shearY + data.offsetShearY) * mixShearY;
+				if (mixShearY != 0) {
+					float r = target.ashearY - shearY + data.offsetShearY;
+					r -= (16384 - (int)(16384.499999999996 - r / 360)) * 360;
+					shearY += r * mixShearY;
+				}
 
 				bone.UpdateWorldTransform(x, y, rotation, scaleX, scaleY, bone.ashearX, shearY);
 			}

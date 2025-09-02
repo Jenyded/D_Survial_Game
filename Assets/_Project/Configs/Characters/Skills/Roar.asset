@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7d55fe395ca4cfbb7e6ccdee8b2d22e, type: 3}
+  m_Name: Roar
+  m_EditorClassIdentifier: 
+  Name: Roar
+  Icon: {fileID: 0}
+  Animation: attspecial
+  Cooldown: 8
+  CastTime: 1.333
+  VfxPrefab: {fileID: 0}
+  Effects:
+  - rid: 6040528345057198159
+  - rid: 6040528345057198160
+  references:
+    version: 2
+    RefIds:
+    - rid: 6040528345057198159
+      type: {class: BuffEffect, ns: _Project.Scripts.Gameplay.Skills, asm: Assembly-CSharp}
+      data:
+        Id: roarPower
+        OnSelf: 1
+        Modifiers:
+          keys: 08000000
+          values:
+          - Type: 1
+            Value: 1.5
+    - rid: 6040528345057198160
+      type: {class: AoeBuffEffect, ns: _Project.Scripts.Gameplay.Skills, asm: Assembly-CSharp}
+      data:
+        Radius: 15
+        Layer:
+          serializedVersion: 2
+          m_Bits: 64
+        Buff:
+          Id: roarSlowdownEffect
+          OnSelf: 0
+          Modifiers:
+            keys: 07000000
+            values:
+            - Type: 1
+              Value: 0.5

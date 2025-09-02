@@ -1,16 +1,16 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated April 5, 2025. Replaces all prior versions.
+ * Last updated July 28, 2023. Replaces all prior versions.
  *
- * Copyright (c) 2013-2025, Esoteric Software LLC
+ * Copyright (c) 2013-2023, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software or
+ * otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
@@ -23,14 +23,13 @@
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
  * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
+ * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
 using System;
 
 namespace Spine {
-	using Physics = Skeleton.Physics;
 
 	/// <summary>
 	/// <para>
@@ -58,13 +57,10 @@ namespace Spine {
 			if (data == null) throw new ArgumentNullException("data", "data cannot be null.");
 			if (skeleton == null) throw new ArgumentNullException("skeleton", "skeleton cannot be null.");
 			this.data = data;
-
 			bones = new ExposedList<Bone>(data.Bones.Count);
 			foreach (BoneData boneData in data.bones)
 				bones.Add(skeleton.bones.Items[boneData.index]);
-
 			target = skeleton.slots.Items[data.target.index];
-
 			position = data.position;
 			spacing = data.spacing;
 			mixRotate = data.mixRotate;
@@ -73,9 +69,14 @@ namespace Spine {
 		}
 
 		/// <summary>Copy constructor.</summary>
-		public PathConstraint (PathConstraint constraint, Skeleton skeleton)
-			: this(constraint.data, skeleton) {
-
+		public PathConstraint (PathConstraint constraint, Skeleton skeleton) {
+			if (constraint == null) throw new ArgumentNullException("constraint cannot be null.");
+			if (skeleton == null) throw new ArgumentNullException("skeleton cannot be null.");
+			data = constraint.data;
+			bones = new ExposedList<Bone>(constraint.bones.Count);
+			foreach (Bone bone in constraint.bones)
+				bones.Add(skeleton.bones.Items[bone.data.index]);
+			target = skeleton.slots.Items[constraint.target.data.index];
 			position = constraint.position;
 			spacing = constraint.spacing;
 			mixRotate = constraint.mixRotate;
@@ -88,16 +89,7 @@ namespace Spine {
 				a[i] = val;
 		}
 
-		public void SetToSetupPose () {
-			PathConstraintData data = this.data;
-			position = data.position;
-			spacing = data.spacing;
-			mixRotate = data.mixRotate;
-			mixX = data.mixX;
-			mixY = data.mixY;
-		}
-
-		public void Update (Physics physics) {
+		public void Update () {
 			PathAttachment attachment = target.Attachment as PathAttachment;
 			if (attachment == null) return;
 
@@ -116,8 +108,12 @@ namespace Spine {
 					for (int i = 0, n = spacesCount - 1; i < n; i++) {
 						Bone bone = bonesItems[i];
 						float setupLength = bone.data.length;
-						float x = setupLength * bone.a, y = setupLength * bone.c;
-						lengths[i] = (float)Math.Sqrt(x * x + y * y);
+						if (setupLength < PathConstraint.Epsilon)
+							lengths[i] = 0;
+						else {
+							float x = setupLength * bone.a, y = setupLength * bone.c;
+							lengths[i] = (float)Math.Sqrt(x * x + y * y);
+						}
 					}
 				}
 				ArraysFill(spaces, 1, spacesCount, spacing);

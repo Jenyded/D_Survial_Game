@@ -1,16 +1,16 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated April 5, 2025. Replaces all prior versions.
+ * Last updated July 28, 2023. Replaces all prior versions.
  *
- * Copyright (c) 2013-2025, Esoteric Software LLC
+ * Copyright (c) 2013-2023, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software or
+ * otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
@@ -23,8 +23,8 @@
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
  * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
+ * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
 #if UNITY_2019_3_OR_NEWER
@@ -52,6 +52,7 @@ namespace Spine.Unity.Examples {
 	[RequireComponent(typeof(SkeletonRenderer))]
 	public class SkeletonRenderTexture : SkeletonRenderTextureBase {
 #if HAS_GET_SHARED_MATERIALS
+		public Material quadMaterial;
 		protected SkeletonRenderer skeletonRenderer;
 		protected MeshRenderer meshRenderer;
 		protected MeshFilter meshFilter;
@@ -86,7 +87,6 @@ namespace Spine.Unity.Examples {
 		void CreateQuadChild () {
 			quad = new GameObject(this.name + " RenderTexture", typeof(MeshRenderer), typeof(MeshFilter));
 			quad.transform.SetParent(this.transform.parent, false);
-			quad.layer = meshRenderer.gameObject.layer;
 			quadMeshRenderer = quad.GetComponent<MeshRenderer>();
 			quadMeshFilter = quad.GetComponent<MeshFilter>();
 
@@ -129,13 +129,6 @@ namespace Spine.Unity.Examples {
 		}
 
 		void RenderOntoQuad (SkeletonRenderer skeletonRenderer) {
-			if (meshFilter == null)
-				meshFilter = this.GetComponent<MeshFilter>();
-			Vector3 size = meshFilter.sharedMesh.bounds.size;
-			if (size.x == 0f || size.y == 0f) {
-				AssignNullMeshAtQuad();
-				return;
-			}
 			PrepareForMesh();
 			RenderToRenderTexture();
 			AssignAtQuad();
@@ -182,16 +175,10 @@ namespace Spine.Unity.Examples {
 			commandBuffer.SetRenderTarget(renderTexture);
 			commandBuffer.ClearRenderTarget(true, true, Color.clear);
 
+			commandBuffer.SetProjectionMatrix(targetCamera.projectionMatrix);
 			commandBuffer.SetViewMatrix(targetCamera.worldToCameraMatrix);
-
-			Matrix4x4 projectionMatrix = CalculateProjectionMatrix(targetCamera,
-				screenSpaceMin, screenSpaceMax, targetCamera.pixelRect.size);
-			commandBuffer.SetProjectionMatrix(projectionMatrix);
-
-			Vector2 targetViewportSize = new Vector2(
-				screenSpaceMax.x - screenSpaceMin.x,
-				screenSpaceMax.y - screenSpaceMin.y);
-			Rect viewportRect = new Rect(Vector2.zero, targetViewportSize * downScaleFactor);
+			Vector2 targetCameraViewportSize = targetCamera.pixelRect.size;
+			Rect viewportRect = new Rect(-screenSpaceMin * downScaleFactor, targetCameraViewportSize * downScaleFactor);
 			commandBuffer.SetViewport(viewportRect);
 		}
 
@@ -199,11 +186,9 @@ namespace Spine.Unity.Examples {
 			meshRenderer.GetPropertyBlock(propertyBlock);
 			meshRenderer.GetSharedMaterials(materials);
 
-			for (int i = 0; i < materials.Count; i++) {
-				foreach (int shaderPass in shaderPasses)
-					commandBuffer.DrawMesh(meshFilter.sharedMesh, transform.localToWorldMatrix,
-						materials[i], meshRenderer.subMeshStartIndex + i, shaderPass, propertyBlock);
-			}
+			for (int i = 0; i < materials.Count; i++)
+				commandBuffer.DrawMesh(meshFilter.sharedMesh, transform.localToWorldMatrix,
+					materials[i], meshRenderer.subMeshStartIndex + i, -1, propertyBlock);
 			Graphics.ExecuteCommandBuffer(commandBuffer);
 		}
 
@@ -211,10 +196,6 @@ namespace Spine.Unity.Examples {
 			quadMeshFilter.mesh = quadMesh;
 			quadMeshRenderer.sharedMaterial.mainTexture = this.renderTexture;
 			quadMeshRenderer.sharedMaterial.color = color;
-		}
-
-		protected void AssignNullMeshAtQuad () {
-			quadMeshFilter.mesh = null;
 		}
 #endif
 	}

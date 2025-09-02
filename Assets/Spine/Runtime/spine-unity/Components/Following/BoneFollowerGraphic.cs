@@ -1,16 +1,16 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated April 5, 2025. Replaces all prior versions.
+ * Last updated July 28, 2023. Replaces all prior versions.
  *
- * Copyright (c) 2013-2025, Esoteric Software LLC
+ * Copyright (c) 2013-2023, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software or
+ * otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
@@ -23,8 +23,8 @@
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
  * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
+ * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
 #if UNITY_2018_3 || UNITY_2019 || UNITY_2018_3_OR_NEWER
@@ -70,7 +70,6 @@ namespace Spine.Unity {
 		public bool followParentWorldScale = false;
 		public bool followXYPosition = true;
 		public bool followZPosition = true;
-		public bool followAttachmentZSpacing = false;
 		[Tooltip("Applies when 'Follow Skeleton Flip' is disabled but 'Follow Bone Rotation' is enabled."
 			+ " When flipping the skeleton by scaling its Transform, this follower's rotation is adjusted"
 			+ " instead of its scale to follow the bone orientation. When one of the axes is flipped, "
@@ -100,7 +99,7 @@ namespace Spine.Unity {
 			if (initializeOnAwake) Initialize();
 		}
 
-		public virtual void Initialize () {
+		public void Initialize () {
 			bone = null;
 			valid = skeletonGraphic != null && skeletonGraphic.IsValid;
 			if (!valid) return;
@@ -120,7 +119,7 @@ namespace Spine.Unity {
 #endif
 		}
 
-		public virtual void LateUpdate () {
+		public void LateUpdate () {
 			if (!valid) {
 				Initialize();
 				return;
@@ -141,22 +140,17 @@ namespace Spine.Unity {
 			if (thisTransform == null) return;
 
 			float scale = skeletonGraphic.MeshScale;
-			Vector2 offset = skeletonGraphic.MeshOffset;
 
 			float additionalFlipScale = 1;
 			if (skeletonTransformIsParent) {
 				// Recommended setup: Use local transform properties if Spine GameObject is the immediate parent
-				thisTransform.localPosition = new Vector3(
-					followXYPosition ? bone.WorldX * scale + offset.x : thisTransform.localPosition.x,
-					followXYPosition ? bone.WorldY * scale + offset.y : thisTransform.localPosition.y,
-					followZPosition ? (followAttachmentZSpacing ? GetAttachmentZPosition() : 0f) : thisTransform.localPosition.z);
+				thisTransform.localPosition = new Vector3(followXYPosition ? bone.WorldX * scale : thisTransform.localPosition.x,
+														followXYPosition ? bone.WorldY * scale : thisTransform.localPosition.y,
+														followZPosition ? 0f : thisTransform.localPosition.z);
 				if (followBoneRotation) thisTransform.localRotation = bone.GetQuaternion();
-			} else { // For special cases: Use transform world properties if transform relationship is complicated
-				if (!skeletonTransform) return;
-
-				float z0Position = (followZPosition && followAttachmentZSpacing) ? GetAttachmentZPosition() : 0f;
-				Vector3 targetWorldPosition = skeletonTransform.TransformPoint(
-					new Vector3(bone.WorldX * scale + offset.x, bone.WorldY * scale + offset.y, z0Position));
+			} else {
+				// For special cases: Use transform world properties if transform relationship is complicated
+				Vector3 targetWorldPosition = skeletonTransform.TransformPoint(new Vector3(bone.WorldX * scale, bone.WorldY * scale, 0f));
 				if (!followZPosition) targetWorldPosition.z = thisTransform.position.z;
 				if (!followXYPosition) {
 					targetWorldPosition.x = thisTransform.position.x;
@@ -202,12 +196,6 @@ namespace Spine.Unity {
 					localScale.y *= Mathf.Sign(bone.Skeleton.ScaleX * bone.Skeleton.ScaleY) * additionalFlipScale;
 				thisTransform.localScale = localScale;
 			}
-		}
-
-		float GetAttachmentZPosition () {
-			int boneIndex = skeletonGraphic.Skeleton.DrawOrder.FindIndex(slot => slot.Bone == bone);
-			if (boneIndex < 0) return 0f;
-			return skeletonGraphic.MeshGenerator.settings.zSpacing * skeletonGraphic.MeshScale * boneIndex;
 		}
 	}
 }

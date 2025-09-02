@@ -1,0 +1,49 @@
+barboskel.png
+size:969,472
+filter:Linear,Linear
+pma:true
+BackLegBot 512
+bounds:664,81,160,183
+FrontIdleLegBot 512
+bounds:611,266,183,204
+HairFront 512
+bounds:256,35,230,181
+offsets:0,30,230,211
+HairLokonl 512
+bounds:796,276,43,156
+offsets:3,0,47,156
+rotate:90
+HairLokonr 2 512
+bounds:853,22,59,114
+offsets:5,2,72,116
+rotate:90
+HairLokonr 512
+bounds:664,2,77,187
+offsets:2,0,83,191
+rotate:90
+Hand1 512
+bounds:488,21,221,174
+offsets:0,0,223,174
+rotate:90
+Hand2 512
+bounds:429,244,226,180
+rotate:90
+Mouth 512
+bounds:826,83,111,191
+Shoulders front 512
+bounds:2,9,252,185
+offsets:0,0,403,185
+Shoulders front 512 left
+bounds:796,321,149,166
+offsets:3,13,160,185
+rotate:90
+body
+bounds:2,196,274,229
+offsets:0,45,278,279
+rotate:90
+clear
+bounds:2,6,1,1
+pelerin
+bounds:233,218,252,194
+offsets:1,0,253,194
+rotate:90

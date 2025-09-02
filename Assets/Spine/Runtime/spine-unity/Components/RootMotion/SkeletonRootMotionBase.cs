@@ -1,16 +1,16 @@
 /******************************************************************************
  * Spine Runtimes License Agreement
- * Last updated April 5, 2025. Replaces all prior versions.
+ * Last updated July 28, 2023. Replaces all prior versions.
  *
- * Copyright (c) 2013-2025, Esoteric Software LLC
+ * Copyright (c) 2013-2023, Esoteric Software LLC
  *
  * Integration of the Spine Runtimes into software or otherwise creating
  * derivative works of the Spine Runtimes is permitted under the terms and
  * conditions of Section 2 of the Spine Editor License Agreement:
  * http://esotericsoftware.com/spine-editor-license
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
+ * Otherwise, it is permitted to integrate the Spine Runtimes into software or
+ * otherwise create derivative works of the Spine Runtimes (collectively,
  * "Products"), provided that each user of the Products must obtain their own
  * Spine Editor license and redistribution of the Products in any form must
  * include this license and copyright notice.
@@ -23,15 +23,9 @@
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
  * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
+ * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
-
-// In order to respect TransformConstraints modifying the scale of parent bones,
-// GetScaleAffectingRootMotion() now uses parentBone.AScaleX and AScaleY instead
-// of previously used ScaleX and ScaleY. If you require the previous behaviour,
-// comment out the define below.
-#define USE_APPLIED_PARENT_SCALE
 
 using Spine.Unity.AnimationTools;
 using System;
@@ -48,7 +42,8 @@ namespace Spine.Unity {
 
 		#region Inspector
 		[SpineBone]
-		public string rootMotionBoneName = "root";
+		[SerializeField]
+		protected string rootMotionBoneName = "root";
 		public bool transformPositionX = true;
 		public bool transformPositionY = true;
 		public bool transformRotation = false;
@@ -160,14 +155,6 @@ namespace Spine.Unity {
 		}
 
 		protected virtual void Start () {
-			Initialize();
-		}
-
-		protected void InitializeOnRebuild (ISkeletonAnimation animatedSkeletonComponent) {
-			Initialize();
-		}
-
-		public virtual void Initialize () {
 			skeletonComponent = GetComponent<ISkeletonComponent>();
 			GatherTopLevelBones();
 			SetRootMotionBone(rootMotionBoneName);
@@ -180,16 +167,6 @@ namespace Spine.Unity {
 			if (skeletonAnimation != null) {
 				skeletonAnimation.UpdateLocal -= HandleUpdateLocal;
 				skeletonAnimation.UpdateLocal += HandleUpdateLocal;
-
-				skeletonAnimation.OnAnimationRebuild -= InitializeOnRebuild;
-				skeletonAnimation.OnAnimationRebuild += InitializeOnRebuild;
-
-				SkeletonUtility skeletonUtility = GetComponent<SkeletonUtility>();
-				if (skeletonUtility != null) {
-					// SkeletonUtilityBone shall receive UpdateLocal callbacks for bone-following after root motion
-					// clears the root-bone position.
-					skeletonUtility.ResubscribeEvents();
-				}
 			}
 		}
 
@@ -221,13 +198,6 @@ namespace Spine.Unity {
 					}
 
 					Vector2 rigidbodyDisplacement2D = new Vector2(rigidbodyDisplacement.x, rigidbodyDisplacement.y);
-					// Note: MovePosition seems to be the only precise and reliable way to set movement delta,
-					// for both 2D and 3D rigidbodies.
-					// Setting velocity like "rigidBody2D.velocity = movement/deltaTime" works perfectly in mid-air
-					// without gravity and ground collision, unfortunately when on the ground, friction causes severe
-					// slowdown. Using a zero-friction PhysicsMaterial leads to sliding endlessly along the ground as
-					// soon as forces are applied. Additionally, there is no rigidBody2D.isGrounded, requiring our own
-					// checks.
 					rigidBody2D.MovePosition(gravityAndVelocityMovement + new Vector2(rigidBody2D.position.x, rigidBody2D.position.y)
 						+ rigidbodyDisplacement2D + additionalRigidbody2DMovement);
 					rigidBody2D.MoveRotation(rigidbody2DRotation + rigidBody2D.rotation);
@@ -243,7 +213,7 @@ namespace Spine.Unity {
 				Vector2 parentBoneScale;
 				GetScaleAffectingRootMotion(out parentBoneScale);
 				ClearEffectiveBoneOffsets(parentBoneScale);
-				skeletonComponent.Skeleton.UpdateWorldTransform(Skeleton.Physics.Pose);
+				skeletonComponent.Skeleton.UpdateWorldTransform();
 			}
 			ClearRigidbodyTempMovement();
 
@@ -301,8 +271,7 @@ namespace Spine.Unity {
 				this.rootMotionBone = bone;
 				FindTransformConstraintsAffectingBone();
 			} else {
-				Debug.Log("Bone named \"" + name + "\" could not be found. " +
-					"Set 'skeletonRootMotion.rootMotionBoneName' before calling 'skeletonAnimation.Initialize(true)'.");
+				Debug.Log("Bone named \"" + name + "\" could not be found.");
 				this.rootMotionBoneIndex = 0;
 				this.rootMotionBone = skeleton.RootBone;
 			}
@@ -636,7 +605,7 @@ namespace Spine.Unity {
 				// apply the constraint and sets Bone.ax, Bone.ay and Bone.arotation values.
 				/// Update is based on Bone.x, Bone.y and Bone.rotation, so skeleton.UpdateWorldTransform()
 				/// can be called afterwards without having a different starting point.
-				constraint.Update(Skeleton.Physics.None);
+				constraint.Update();
 			}
 		}
 
@@ -654,13 +623,8 @@ namespace Spine.Unity {
 			parentBoneScale = Vector2.one;
 			Bone scaleBone = rootMotionBone;
 			while ((scaleBone = scaleBone.Parent) != null) {
-#if USE_APPLIED_PARENT_SCALE
-				parentBoneScale.x *= scaleBone.AScaleX;
-				parentBoneScale.y *= scaleBone.AScaleY;
-#else
 				parentBoneScale.x *= scaleBone.ScaleX;
 				parentBoneScale.y *= scaleBone.ScaleY;
-#endif
 			}
 			totalScale = Vector2.Scale(totalScale, parentBoneScale);
 			totalScale *= AdditionalScale;
